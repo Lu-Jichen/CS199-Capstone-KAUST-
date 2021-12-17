@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.PetMapper">
+    <insert id="insertPet">
+        insert into errand (errand_type, status, create_time, price) value (1, 0, #{createTime}, #{price});
+        set @id = @@identity;
+        insert into errand_user (errand_id, user_id, state) value(@id,cast(#{userId} as signed),0);
+        insert into pet_errand (errand_id, location, start_time, end_time, pet_type, demand) values (@id, #{location}, #{startTime}, #{endTime}, #{petType}, #{demand});
+    </insert>
+    <update id="updatePetById">
+        update pet_errand
+        set location = #{location},
+            start_time       = #{startTime},
+            end_time = #{endTime},
+            pet_type = #{petType},
+            demand   = #{demand}
+        where errand_id = #{errandId};
+        update errand
+        set price    = #{price}
+        where errand_id = #{errandId};
+    </update>
+
+    <delete id="deletePetById">
+        delete from pet_errand where errand_id = #{errandId};
+        delete from errand_user where errand_id = #{errandId};
+        delete from errand where errand_id = #{errandId};
+    </delete>
+
+    <select id="getPetById" resultType="com.example.demo.entity.Pet">
+        select u.username, u.user_id, e.errand_id, e.status, e.create_time, et.type_name, e.price, pe.*
+        from errand e
+                 left join errand_type et on e.errand_type = et.type_id
+                 left join errand_user eu on e.errand_id = eu.errand_id
+                 left join user u on u.user_id = eu.user_id
+                 left join pet_errand pe on e.errand_id = pe.errand_id
+        where e.errand_id = #{errandId} and eu.state = 0;
+    </select>
+</mapper>

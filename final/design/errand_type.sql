@@ -1,0 +1,2 @@
+INSERT INTO demo.errand_type (type_id, type_name, description) VALUES (1, 'pet care', 'Take care of pets, like walk a dog.');
+INSERT INTO demo.errand_type (type_id, type_name, description) VALUES (2, 'delivery', 'Deliver things from departure to destination.');

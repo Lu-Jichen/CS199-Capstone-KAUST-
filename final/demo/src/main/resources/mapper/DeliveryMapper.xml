@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.DeliveryMapper">
+    <insert id="insertDelivery">
+        insert into errand (errand_type, status, create_time, price) value (2, 0, #{createTime}, #{price});
+        set @id = @@identity;
+        insert into errand_user (errand_id, user_id, state) value(@id,cast(#{userId} as signed),0);
+        insert into delivery_errand (errand_id, start_time, end_time, departure, destination, item_description) values (@id, #{startTime}, #{endTime}, #{departure}, #{destination}, #{itemDescription});
+    </insert>
+
+    <update id="updateDeliveryById">
+        update delivery_errand
+        set start_time       = #{startTime},
+            end_time = #{endTime},
+            departure = #{departure},
+            destination   = #{destination},
+            item_description = #{itemDescription}
+        where errand_id = #{errandId};
+        update errand
+        set price    = #{price}
+        where errand_id = #{errandId};
+    </update>
+    
+    <select id="getDeliveryById" resultType="com.example.demo.entity.Delivery">
+        select u.username, u.user_id, e.errand_id, e.status, e.create_time, et.type_name, e.price, de.*
+        from errand e
+                 left join errand_type et on e.errand_type = et.type_id
+                 left join errand_user eu on e.errand_id = eu.errand_id
+                 left join user u on u.user_id = eu.user_id
+                 left join delivery_errand de on e.errand_id = de.errand_id
+        where e.errand_id = #{errandId} and eu.state = 0;
+    </select>
+
+    <delete id="deleteDeliveryById">
+        delete from delivery_errand where errand_id = #{errandId};
+        delete from errand_user where errand_id = #{errandId};
+        delete from errand where errand_id = #{errandId};
+    </delete>
+
+</mapper>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.ErrandMapper">
+    <insert id="receiveErrandId">
+        insert ignore into errand_user(user_id, errand_id, state)
+        values (#{userId}, #{errandId}, 1);
+    </insert>
+
+    <update id="updateErrandStatus">
+        update errand
+        set status=#{status}
+        where errand_id = #{errandId};
+    </update>
+
+    <delete id="dropErrandById">
+        delete
+        from errand_user
+        where errand_id = #{errandId}
+          and user_id = #{userId}
+          and state = 1;
+    </delete>
+
+    <select id="getErrandList" resultType="com.example.demo.entity.Errand">
+        select u.username, e.errand_id, e.status, e.create_time, et.type_name, e.price
+        from errand e
+                 left join errand_type et on e.errand_type = et.type_id
+                 left join errand_user eu on e.errand_id = eu.errand_id
+                 left join user u on u.user_id = eu.user_id
+        where eu.state = 0
+        <if test="searchErrandType != null and searchErrandType != ''">
+            and et.type_name = #{searchErrandType}
+        </if>
+        <if test="searchStatus != null and searchStatus != ''">
+            and e.status = #{searchStatus}
+        </if>
+        <if test="minPrice != null and minPrice != ''">
+            and e.price &gt;= #{minPrice}
+        </if>
+        <if test="maxPrice != null and maxPrice != ''">
+            and e.price &lt; #{maxPrice}
+        </if>
+        <if test="orderCol != null and orderCol != ''">
+            order by ${orderCol} ${order}
+        </if>
+    </select>
+    <select id="getErrandTypeNameById" resultType="java.lang.String">
+        select et.type_name
+        from errand e
+                 left join errand_type et on e.errand_type = et.type_id
+        where e.errand_id = #{errandId};
+    </select>
+    <select id="getErrandListErrandByUserId" resultType="com.example.demo.entity.Errand">
+        select u.username, e.errand_id, e.status, e.create_time, et.type_name, e.price
+        from errand e
+                 left join errand_type et on e.errand_type = et.type_id
+                 left join errand_user eu on e.errand_id = eu.errand_id
+                 left join user u on u.user_id = eu.user_id
+        where eu.state = 0
+          and u.user_id = #{userId};
+    </select>
+    <select id="getErrandListWorkByUserId" resultType="com.example.demo.entity.Errand">
+        select t1.*, u.username from (select e.errand_id, e.status, e.create_time, et.type_name, e.price
+        from errand e
+                 left join errand_type et on e.errand_type = et.type_id
+                 left join errand_user eu on e.errand_id = eu.errand_id
+                 left join user u on u.user_id = eu.user_id
+        where eu.state = 1
+          and u.user_id = #{userId})t1 left join errand_user eu on t1.errand_id = eu.errand_id
+        left join user u on u.user_id = eu.user_id
+        where eu.state = 0;
+    </select>
+    <select id="getErrandStatus" resultType="java.lang.Integer">
+        select status from errand where errand_id = #{errandId};
+    </select>
+</mapper>
